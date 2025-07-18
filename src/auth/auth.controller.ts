@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto } from './auth.dto';
+import { RegisterDTO, LoginDTO } from './auth.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Auth')
@@ -12,7 +12,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Registrar novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso.' })
   @ApiResponse({ status: 409, description: 'Email já cadastrado.' })
-  async register(@Body() dto: RegisterDto) {
+  async register(@Body() dto: RegisterDTO) {
     return this.authService.register(dto);
   }
 
@@ -20,7 +20,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Login do usuário' })
   @ApiResponse({ status: 201, description: 'Login realizado com sucesso.' })
   @ApiResponse({ status: 401, description: 'Credenciais inválidas.' })
-  async login(@Body() dto: LoginDto) {
+  async login(@Body() dto: LoginDTO) {
     return this.authService.login(dto);
   }
 }

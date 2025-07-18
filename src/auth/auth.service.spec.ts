@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { RegisterDto, LoginDto } from './auth.dto';
+import { RegisterDTO, LoginDTO } from './auth.dto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { UsersRepository } from '../repositories/user/users-repository';
@@ -42,7 +42,7 @@ describe('AuthService', () => {
       name: 'Test',
       email: 'test@email.com',
       password: '123456',
-    } as RegisterDto);
+    } as RegisterDTO);
     expect(usersRepository.create).toHaveBeenCalledWith({
       name: 'Test',
       email: 'test@email.com',
@@ -59,7 +59,7 @@ describe('AuthService', () => {
         name: 'Test',
         email: 'test@email.com',
         password: '123456',
-      } as RegisterDto),
+      } as RegisterDTO),
     ).rejects.toThrow(ConflictException);
   });
 
@@ -75,7 +75,7 @@ describe('AuthService', () => {
     const result = await service.login({
       email: 'test@email.com',
       password: '123456',
-    } as LoginDto);
+    } as LoginDTO);
     expect(result).toHaveProperty('accessToken');
     expect(result).toHaveProperty('refreshToken');
   });
