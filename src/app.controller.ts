@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { UsersRepository } from './repositories/users-repository';
+import { UsersRepository } from './repositories/user/users-repository';
 
 @Controller()
 export class AppController {

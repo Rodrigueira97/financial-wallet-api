@@ -17,10 +17,15 @@ export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @Post('deposit')
-  @ApiOperation({ summary: 'Depositar dinheiro na carteira' })
+  @ApiOperation({
+    summary: 'Depositar dinheiro na carteira',
+    description:
+      'O campo reversedAt será null em depósitos normais. Se o depósito for revertido, reversedAt terá a data/hora da reversão.',
+  })
   @ApiResponse({
     status: 201,
-    description: 'Depósito realizado com sucesso.',
+    description:
+      'Depósito realizado com sucesso. O campo reversedAt será null em depósitos normais. Se o depósito for revertido, reversedAt terá a data/hora da reversão.',
     schema: {
       example: {
         id: 'uuid',
@@ -43,10 +48,15 @@ export class WalletController {
   }
 
   @Post('transfer')
-  @ApiOperation({ summary: 'Transferir dinheiro para outro usuário' })
+  @ApiOperation({
+    summary: 'Transferir dinheiro para outro usuário',
+    description:
+      'O campo reversedAt será null em transferências normais. Se a transferência for revertida, reversedAt terá a data/hora da reversão.',
+  })
   @ApiResponse({
     status: 201,
-    description: 'Transferência realizada com sucesso.',
+    description:
+      'Transferência realizada com sucesso. O campo reversedAt será null em transferências normais. Se a transferência for revertida, reversedAt terá a data/hora da reversão.',
     schema: {
       example: {
         id: 'uuid',
@@ -56,6 +66,8 @@ export class WalletController {
         toUserId: 'uuid',
         status: 'COMPLETED',
         createdAt: '2024-07-17T18:05:00.000Z',
+        reversedAt: null,
+        reversalReferenceId: null,
       },
     },
   })
@@ -70,8 +82,13 @@ export class WalletController {
   @Post('reverse')
   @ApiOperation({
     summary: 'Reverter uma transação (depósito ou transferência)',
+    description:
+      'O campo reversedAt indica a data/hora em que a transação original foi revertida.',
   })
   @ApiResponse({
+    status: 201,
+    description:
+      'Reversão realizada com sucesso. O campo reversedAt indica a data/hora em que a transação original foi revertida.',
     schema: {
       example: {
         id: 'uuid',
@@ -81,6 +98,7 @@ export class WalletController {
         toUserId: 'uuid',
         status: 'COMPLETED',
         createdAt: '2024-07-17T18:10:00.000Z',
+        reversedAt: null,
         reversalReferenceId: 'uuid',
       },
     },

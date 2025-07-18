@@ -17,20 +17,20 @@ export class WalletService {
   constructor(private prisma: PrismaService) {}
 
   async deposit(userId: string, dto: DepositDto): Promise<Transaction> {
-    return this.prisma.$transaction(async (trx) => {
-      const user = await trx.user.findUnique({ where: { id: userId } });
+    return this.prisma.$transaction(async (client) => {
+      const user = await client.user.findUnique({ where: { id: userId } });
 
       if (!user) throw new BadRequestException('Usuário não encontrado');
 
       if (new Decimal(user.balance).lt(0))
         throw new ForbiddenException('Depósito bloqueado: saldo negativo');
 
-      await trx.user.update({
+      await client.user.update({
         where: { id: userId },
         data: { balance: { increment: dto.amount } },
       });
 
-      return trx.transaction.create({
+      return client.transaction.create({
         data: {
           type: TransactionType.DEPOSIT,
           amount: dto.amount,
@@ -42,12 +42,12 @@ export class WalletService {
   }
 
   async transfer(fromUserId: string, dto: TransferDto): Promise<Transaction> {
-    return this.prisma.$transaction(async (trx) => {
-      const fromUser = await trx.user.findUnique({
+    return this.prisma.$transaction(async (client) => {
+      const fromUser = await client.user.findUnique({
         where: { id: fromUserId },
       });
 
-      const toUser = await trx.user.findUnique({
+      const toUser = await client.user.findUnique({
         where: { id: dto.toUserId },
       });
 
@@ -60,17 +60,17 @@ export class WalletService {
       if (new Decimal(fromUser.balance).lt(0))
         throw new ForbiddenException('Transferência bloqueada: saldo negativo');
 
-      await trx.user.update({
+      await client.user.update({
         where: { id: fromUserId },
         data: { balance: { decrement: dto.amount } },
       });
 
-      await trx.user.update({
+      await client.user.update({
         where: { id: dto.toUserId },
         data: { balance: { increment: dto.amount } },
       });
 
-      return trx.transaction.create({
+      return client.transaction.create({
         data: {
           type: TransactionType.TRANSFER,
           amount: dto.amount,
@@ -83,8 +83,8 @@ export class WalletService {
   }
 
   async reverse(userId: string, dto: ReverseDto): Promise<Transaction> {
-    return this.prisma.$transaction(async (trx) => {
-      const original = await trx.transaction.findUnique({
+    return this.prisma.$transaction(async (client) => {
+      const original = await client.transaction.findUnique({
         where: { id: dto.transactionId },
       });
 
@@ -97,30 +97,30 @@ export class WalletService {
         throw new ForbiddenException('Sem permissão para reverter');
 
       if (original.type === TransactionType.DEPOSIT) {
-        await trx.user.update({
+        await client.user.update({
           where: { id: original.toUserId! },
           data: { balance: { decrement: original.amount } },
         });
       }
 
       if (original.type === TransactionType.TRANSFER) {
-        await trx.user.update({
+        await client.user.update({
           where: { id: original.fromUserId! },
           data: { balance: { increment: original.amount } },
         });
 
-        await trx.user.update({
+        await client.user.update({
           where: { id: original.toUserId! },
           data: { balance: { decrement: original.amount } },
         });
       }
 
-      await trx.transaction.update({
+      await client.transaction.update({
         where: { id: original.id },
         data: { status: TransactionStatus.REVERSED, reversedAt: new Date() },
       });
 
-      return trx.transaction.create({
+      return client.transaction.create({
         data: {
           type: TransactionType.REVERSAL,
           amount: original.amount,

@@ -3,7 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
 } from '@nestjs/common';
-import { UsersRepository } from '../repositories/users-repository';
+import { UsersRepository } from '../repositories/user/users-repository';
 import { RegisterDto, LoginDto } from './auth.dto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';

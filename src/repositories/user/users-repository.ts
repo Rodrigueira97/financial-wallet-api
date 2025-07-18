@@ -1,4 +1,4 @@
-import { User } from '../../generated/prisma';
+import { User } from '../../../generated/prisma';
 
 export abstract class UsersRepository {
   abstract create(data: {
