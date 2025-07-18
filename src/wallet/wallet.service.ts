@@ -2,134 +2,208 @@ import {
   Injectable,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
-import { DepositDto, TransferDto, ReverseDto } from './wallet.dto';
+import { DepositDTO, TransferDTO, ReverseDTO } from './wallet.dto';
 import {
   TransactionType,
   TransactionStatus,
   Transaction,
-} from '../../generated/prisma';
+} from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class WalletService {
+  private readonly logger = new Logger(WalletService.name);
+
   constructor(private prisma: PrismaService) {}
 
-  async deposit(userId: string, dto: DepositDto): Promise<Transaction> {
+  async deposit(userId: string, { amount }: DepositDTO): Promise<Transaction> {
+    this.logger.log(`Usuário ${userId} solicitou depósito de ${amount}`);
+
     return this.prisma.$transaction(async (client) => {
       const user = await client.user.findUnique({ where: { id: userId } });
 
-      if (!user) throw new BadRequestException('Usuário não encontrado');
+      if (!user) {
+        this.logger.warn(`Usuário ${userId} não encontrado para depósito.`);
+        throw new BadRequestException('Usuário não encontrado');
+      }
 
-      if (new Decimal(user.balance).lt(0))
+      if (new Decimal(user.balance).lt(0)) {
+        this.logger.warn(
+          `Depósito bloqueado para usuário ${userId}: saldo negativo.`,
+        );
         throw new ForbiddenException('Depósito bloqueado: saldo negativo');
+      }
 
       await client.user.update({
         where: { id: userId },
-        data: { balance: { increment: dto.amount } },
+        data: { balance: { increment: amount } },
       });
 
-      return client.transaction.create({
+      const transaction = await client.transaction.create({
         data: {
           type: TransactionType.DEPOSIT,
-          amount: dto.amount,
+          amount,
           toUserId: userId,
           status: TransactionStatus.COMPLETED,
         },
       });
+
+      this.logger.log(
+        `Depósito realizado para usuário ${userId}, transação ${transaction.id}`,
+      );
+
+      return transaction;
     });
   }
 
-  async transfer(fromUserId: string, dto: TransferDto): Promise<Transaction> {
+  async transfer(
+    fromUserId: string,
+    { amount, toUserId }: TransferDTO,
+  ): Promise<Transaction> {
+    this.logger.log(
+      `Usuário ${fromUserId} solicitou transferência de ${amount} para ${toUserId}`,
+    );
+
     return this.prisma.$transaction(async (client) => {
       const fromUser = await client.user.findUnique({
         where: { id: fromUserId },
       });
 
       const toUser = await client.user.findUnique({
-        where: { id: dto.toUserId },
+        where: { id: toUserId },
       });
 
-      if (!fromUser || !toUser)
+      if (!fromUser || !toUser) {
+        this.logger.warn(`Transferência falhou: usuário(s) não encontrado(s).`);
+
         throw new BadRequestException('Usuário não encontrado');
+      }
+      if (new Decimal(fromUser.balance).lt(amount)) {
+        this.logger.warn(
+          `Transferência bloqueada: saldo insuficiente para usuário ${fromUserId}`,
+        );
 
-      if (new Decimal(fromUser.balance).lt(dto.amount))
         throw new ForbiddenException('Saldo insuficiente');
+      }
+      if (new Decimal(fromUser.balance).lt(0)) {
+        this.logger.warn(
+          `Transferência bloqueada: saldo negativo para usuário ${fromUserId}`,
+        );
 
-      if (new Decimal(fromUser.balance).lt(0))
         throw new ForbiddenException('Transferência bloqueada: saldo negativo');
+      }
 
       await client.user.update({
         where: { id: fromUserId },
-        data: { balance: { decrement: dto.amount } },
+        data: { balance: { decrement: amount } },
       });
 
       await client.user.update({
-        where: { id: dto.toUserId },
-        data: { balance: { increment: dto.amount } },
+        where: { id: toUserId },
+        data: { balance: { increment: amount } },
       });
 
-      return client.transaction.create({
+      const transaction = await client.transaction.create({
         data: {
           type: TransactionType.TRANSFER,
-          amount: dto.amount,
+          amount,
           fromUserId,
-          toUserId: dto.toUserId,
+          toUserId,
           status: TransactionStatus.COMPLETED,
         },
       });
+
+      this.logger.log(
+        `Transferência realizada: ${fromUserId} -> ${toUserId}, transação ${transaction.id}`,
+      );
+
+      return transaction;
     });
   }
 
-  async reverse(userId: string, dto: ReverseDto): Promise<Transaction> {
+  async reverse(
+    userId: string,
+    { transactionId }: ReverseDTO,
+  ): Promise<Transaction> {
+    this.logger.log(
+      `Usuário ${userId} solicitou reversão da transação ${transactionId}`,
+    );
+
     return this.prisma.$transaction(async (client) => {
-      const original = await client.transaction.findUnique({
-        where: { id: dto.transactionId },
+      const transactionOriginal = await client.transaction.findUnique({
+        where: { id: transactionId },
       });
 
-      if (!original) throw new BadRequestException('Transação não encontrada');
+      if (!transactionOriginal) {
+        this.logger.warn(
+          `Reversão falhou: transação ${transactionId} não encontrada.`,
+        );
 
-      if (original.status === TransactionStatus.REVERSED)
+        throw new BadRequestException('Transação não encontrada');
+      }
+
+      if (transactionOriginal.status === TransactionStatus.REVERSED) {
+        this.logger.warn(
+          `Reversão já realizada para transação ${transactionId}`,
+        );
+
         throw new BadRequestException('Transação já revertida');
+      }
 
-      if (original.fromUserId !== userId && original.toUserId !== userId)
+      if (
+        transactionOriginal.fromUserId !== userId &&
+        transactionOriginal.toUserId !== userId
+      ) {
+        this.logger.warn(
+          `Usuário ${userId} tentou reverter transação sem permissão (${transactionId})`,
+        );
+
         throw new ForbiddenException('Sem permissão para reverter');
+      }
 
-      if (original.type === TransactionType.DEPOSIT) {
+      if (transactionOriginal.type === TransactionType.DEPOSIT) {
         await client.user.update({
-          where: { id: original.toUserId! },
-          data: { balance: { decrement: original.amount } },
+          where: { id: transactionOriginal.toUserId! },
+          data: { balance: { decrement: transactionOriginal.amount } },
         });
       }
 
-      if (original.type === TransactionType.TRANSFER) {
+      if (transactionOriginal.type === TransactionType.TRANSFER) {
         await client.user.update({
-          where: { id: original.fromUserId! },
-          data: { balance: { increment: original.amount } },
+          where: { id: transactionOriginal.fromUserId! },
+          data: { balance: { increment: transactionOriginal.amount } },
         });
 
         await client.user.update({
-          where: { id: original.toUserId! },
-          data: { balance: { decrement: original.amount } },
+          where: { id: transactionOriginal.toUserId! },
+          data: { balance: { decrement: transactionOriginal.amount } },
         });
       }
 
       await client.transaction.update({
-        where: { id: original.id },
+        where: { id: transactionOriginal.id },
         data: { status: TransactionStatus.REVERSED, reversedAt: new Date() },
       });
 
-      return client.transaction.create({
+      const reversal = await client.transaction.create({
         data: {
           type: TransactionType.REVERSAL,
-          amount: original.amount,
-          fromUserId: original.toUserId,
-          toUserId: original.fromUserId,
+          amount: transactionOriginal.amount,
+          fromUserId: transactionOriginal.toUserId,
+          toUserId: transactionOriginal.fromUserId,
           status: TransactionStatus.COMPLETED,
-          reversalReferenceId: original.id,
+          reversalReferenceId: transactionOriginal.id,
         },
       });
+
+      this.logger.log(
+        `Reversão realizada: transação ${transactionId} revertida por ${userId}, nova transação ${reversal.id}`,
+      );
+
+      return reversal;
     });
   }
 }

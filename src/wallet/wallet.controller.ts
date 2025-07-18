@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { DepositDto, TransferDto, ReverseDto } from './wallet.dto';
+import { DepositDTO, TransferDTO, ReverseDTO } from './wallet.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
   ApiTags,
@@ -43,7 +43,7 @@ export class WalletController {
     status: 403,
     description: 'Depósito bloqueado: saldo negativo.',
   })
-  async deposit(@Request() req, @Body() dto: DepositDto) {
+  async deposit(@Request() req, @Body() dto: DepositDTO) {
     return this.walletService.deposit(req.user.id, dto);
   }
 
@@ -75,7 +75,7 @@ export class WalletController {
     status: 403,
     description: 'Saldo insuficiente ou saldo negativo.',
   })
-  async transfer(@Request() req, @Body() dto: TransferDto) {
+  async transfer(@Request() req, @Body() dto: TransferDTO) {
     return this.walletService.transfer(req.user.id, dto);
   }
 
@@ -104,7 +104,7 @@ export class WalletController {
     },
   })
   @ApiResponse({ status: 403, description: 'Sem permissão para reverter.' })
-  async reverse(@Request() req, @Body() dto: ReverseDto) {
+  async reverse(@Request() req, @Body() dto: ReverseDTO) {
     return this.walletService.reverse(req.user.id, dto);
   }
 }

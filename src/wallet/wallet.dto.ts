@@ -1,7 +1,7 @@
 import { IsNumber, IsPositive, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class DepositDto {
+export class DepositDTO {
   @ApiProperty({
     example: 100,
     description: 'Valor a ser depositado (positivo)',
@@ -11,7 +11,7 @@ export class DepositDto {
   amount: number;
 }
 
-export class TransferDto {
+export class TransferDTO {
   @ApiProperty({
     example: 'uuid-do-usuario',
     description: 'ID do usuário destinatário',
@@ -28,7 +28,7 @@ export class TransferDto {
   amount: number;
 }
 
-export class ReverseDto {
+export class ReverseDTO {
   @ApiProperty({
     example: 'uuid-da-transacao',
     description: 'ID da transação a ser revertida',
