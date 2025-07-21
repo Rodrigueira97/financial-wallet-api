@@ -21,74 +21,112 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# Financial Wallet API
 
-## Project setup
+## Resumo do Projeto
 
-```bash
-$ npm install
+Esta API RESTful foi desenvolvida para gerenciar uma carteira financeira digital, permitindo que usuários realizem depósitos, transferências, recebam valores e revertam transações, com foco em segurança, escalabilidade e boas práticas de engenharia de software.
+
+### Principais Diferenciais
+
+- **Configuração Docker**: Ambiente local consistente com Docker e Docker Compose, incluindo banco de dados PostgreSQL e aplicação NestJS.
+- **Testes de Integração e Unidade**: Cobertura completa de testes e2e (autenticação, operações de carteira, reversões) e unitários (lógica de negócio isolada), garantindo robustez e confiabilidade.
+- **Documentação de API**: Documentação interativa via Swagger disponível em `/api`, com exemplos, descrições e validações detalhadas para todos os endpoints e DTOs.
+- **Observabilidade**: Uso extensivo do Logger do NestJS para rastreamento de operações, tratamento centralizado de erros e mensagens padronizadas.
+- **Arquitetura Limpa e SOLID**: Separação clara de camadas (controller, service, repository), uso de DTOs, injeção de dependências, tipagem forte (TypeScript/Prisma) e princípios SOLID aplicados.
+- **Segurança**: Autenticação JWT (access/refresh token), hash de senha com bcrypt, validações de saldo e permissões, tratamento de exceções HTTP.
+
+---
+
+## Como rodar o projeto
+
+### Com Docker (recomendado)
+```sh
+docker-compose up --build
+```
+Acesse a documentação Swagger em: [http://localhost:3000/api](http://localhost:3000/api)
+
+### Localmente (Node.js)
+```sh
+cp .env.example .env
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run start:dev
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## Tabela de Endpoints
 
-# watch mode
-$ npm run start:dev
+| Método | Rota                | Descrição                       | Autenticação |
+|--------|---------------------|---------------------------------|--------------|
+| POST   | /auth/register      | Registro de usuário             | Não          |
+| POST   | /auth/login         | Login e obtenção de tokens      | Não          |
+| POST   | /wallet/deposit     | Depósito na carteira            | Sim          |
+| POST   | /wallet/transfer    | Transferência para outro usuário| Sim          |
+| POST   | /wallet/reverse     | Reversão de transação           | Sim          |
 
-# production mode
-$ npm run start:prod
+---
+
+## Exemplos de Requisições
+
+### Registro de Usuário
+```http
+POST /auth/register
+Content-Type: application/json
+
+{
+  "name": "João da Silva",
+  "email": "joao@email.com",
+  "password": "senhaSegura123"
+}
 ```
 
-## Run tests
+### Login
+```http
+POST /auth/login
+Content-Type: application/json
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+{
+  "email": "joao@email.com",
+  "password": "senhaSegura123"
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Depósito
+```http
+POST /wallet/deposit
+Authorization: Bearer <accessToken>
+Content-Type: application/json
 
-## Resources
+{
+  "amount": 100
+}
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### Transferência
+```http
+POST /wallet/transfer
+Authorization: Bearer <accessToken>
+Content-Type: application/json
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+{
+  "toUserId": "uuid-do-destinatario",
+  "amount": 50
+}
+```
 
-## Support
+### Reversão de Transação
+```http
+POST /wallet/reverse
+Authorization: Bearer <accessToken>
+Content-Type: application/json
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+{
+  "transactionId": "uuid-da-transacao"
+}
+```
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
