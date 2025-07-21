@@ -28,20 +28,35 @@
 
 Esta API RESTful foi desenvolvida para gerenciar uma carteira financeira digital, permitindo que usuários realizem depósitos, transferências, recebam valores e revertam transações, com foco em segurança, escalabilidade e boas práticas de engenharia de software.
 
-### Principais Diferenciais
+---
 
-- **Configuração Docker**: Ambiente local consistente com Docker e Docker Compose, incluindo banco de dados PostgreSQL e aplicação NestJS.
-- **Testes de Integração e Unidade**: Cobertura completa de testes e2e (autenticação, operações de carteira, reversões) e unitários (lógica de negócio isolada), garantindo robustez e confiabilidade.
-- **Documentação de API**: Documentação interativa via Swagger disponível em `/api`, com exemplos, descrições e validações detalhadas para todos os endpoints e DTOs.
-- **Observabilidade**: Uso extensivo do Logger do NestJS para rastreamento de operações, tratamento centralizado de erros e mensagens padronizadas.
-- **Arquitetura Limpa e SOLID**: Separação clara de camadas (controller, service, repository), uso de DTOs, injeção de dependências, tipagem forte (TypeScript/Prisma) e princípios SOLID aplicados.
-- **Segurança**: Autenticação JWT (access/refresh token), hash de senha com bcrypt, validações de saldo e permissões, tratamento de exceções HTTP.
+## Principais Diferenciais
+
+- **Configuração Docker:** Ambiente local consistente com Docker e Docker Compose.
+- **Testes de Integração e Unidade:** Cobertura completa de testes e2e e unitários.
+- **Documentação de API:** Swagger disponível em `/api`, com exemplos e validações detalhadas.
+- **Observabilidade:** Logger do NestJS, tratamento centralizado de erros e mensagens padronizadas.
+- **Arquitetura Limpa e SOLID:** Separação clara de camadas, uso de DTOs, injeção de dependências, tipagem forte.
+- **Segurança:** Autenticação JWT, hash de senha com bcrypt, validações de saldo e permissões.
+
+---
+
+## Tecnologias Utilizadas
+
+- Node.js
+- NestJS
+- PostgreSQL
+- Prisma ORM
+- Docker
+- Jest
+- Supertest
+- Swagger
 
 ---
 
 ## Como rodar o projeto
 
-### Com Docker (recomendado)
+### Com Docker
 ```sh
 docker-compose up --build
 ```
@@ -57,6 +72,27 @@ npm run start:dev
 ```
 
 ---
+
+### Localmente (Node.js)
+```sh
+cp .env.example .env
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run start:dev
+```
+
+---
+
+### Testes
+
+- Para rodar os testes de unidade e integração:
+  ```sh
+  npm run test       # Testes unitários
+  npm run test:e2e   # Testes de integração (e2e)
+  ```
+- As variáveis de ambiente necessárias estão no arquivo `.env.example`.
+- A documentação completa dos endpoints está disponível via Swagger após subir o projeto.
 
 ## Tabela de Endpoints
 
@@ -130,12 +166,3 @@ Content-Type: application/json
 ```
 
 ---
-
-## Observações
-
-- Para rodar os testes de unidade e integração:
-  ```sh
-  npm run test       # Testes unitários
-  npm run test:e2e   # Testes de integração (e2e)
-  ```
-- A documentação completa dos endpoints está disponível via Swagger após subir o projeto.
