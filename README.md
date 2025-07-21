@@ -130,3 +130,12 @@ Content-Type: application/json
 ```
 
 ---
+
+## Observações
+
+- Para rodar os testes de unidade e integração:
+  ```sh
+  npm run test       # Testes unitários
+  npm run test:e2e   # Testes de integração (e2e)
+  ```
+- A documentação completa dos endpoints está disponível via Swagger após subir o projeto.
