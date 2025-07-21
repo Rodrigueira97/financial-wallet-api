@@ -12,15 +12,15 @@ export class AuthController {
   @ApiOperation({ summary: 'Registrar novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso.' })
   @ApiResponse({ status: 409, description: 'Email já cadastrado.' })
-  async register(@Body() dto: RegisterDTO) {
-    return this.authService.register(dto);
+  async register(@Body() { email, name, password }: RegisterDTO) {
+    return this.authService.register({ email, name, password });
   }
 
   @Post('login')
   @ApiOperation({ summary: 'Login do usuário' })
   @ApiResponse({ status: 201, description: 'Login realizado com sucesso.' })
   @ApiResponse({ status: 401, description: 'Credenciais inválidas.' })
-  async login(@Body() dto: LoginDTO) {
-    return this.authService.login(dto);
+  async login(@Body() { email, password }: LoginDTO) {
+    return this.authService.login({ email, password });
   }
 }
