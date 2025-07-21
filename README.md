@@ -56,11 +56,13 @@ Esta API RESTful foi desenvolvida para gerenciar uma carteira financeira digital
 
 ## Como rodar o projeto
 
+- Crie o arquivo .env com as seguintes variáveis:
 
-Crie o arquivo .env com as seguintes variáveis:
+```sh
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/wallet?sslmode=require&channel_binding=require" 
 JWT_SECRET="test"
 PORT="3000"
+```
 
 ```sh
 docker-compose up
