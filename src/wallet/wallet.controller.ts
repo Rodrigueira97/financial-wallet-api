@@ -8,6 +8,12 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
+import { Request as ExpressRequest } from 'express';
+import { User } from '@prisma/client';
+
+export interface AuthenticatedRequest extends ExpressRequest {
+  user: User;
+}
 
 @ApiTags('Wallet')
 @ApiBearerAuth()
@@ -43,8 +49,11 @@ export class WalletController {
     status: 403,
     description: 'Depósito bloqueado: saldo negativo.',
   })
-  async deposit(@Request() req, @Body() dto: DepositDTO) {
-    return this.walletService.deposit(req.user.id, dto);
+  async deposit(
+    @Request() req: AuthenticatedRequest,
+    @Body() { amount }: DepositDTO,
+  ) {
+    return this.walletService.deposit(req.user.id, { amount });
   }
 
   @Post('transfer')
@@ -75,8 +84,11 @@ export class WalletController {
     status: 403,
     description: 'Saldo insuficiente ou saldo negativo.',
   })
-  async transfer(@Request() req, @Body() dto: TransferDTO) {
-    return this.walletService.transfer(req.user.id, dto);
+  async transfer(
+    @Request() req: AuthenticatedRequest,
+    @Body() { amount, toUserId }: TransferDTO,
+  ) {
+    return this.walletService.transfer(req.user.id, { amount, toUserId });
   }
 
   @Post('reverse')
@@ -104,7 +116,10 @@ export class WalletController {
     },
   })
   @ApiResponse({ status: 403, description: 'Sem permissão para reverter.' })
-  async reverse(@Request() req, @Body() dto: ReverseDTO) {
-    return this.walletService.reverse(req.user.id, dto);
+  async reverse(
+    @Request() req: AuthenticatedRequest,
+    @Body() { transactionId }: ReverseDTO,
+  ) {
+    return this.walletService.reverse(req.user.id, { transactionId });
   }
 }

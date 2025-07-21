@@ -6,7 +6,6 @@ import { TransactionType } from '@prisma/client';
 
 describe('WalletService', () => {
   let service: WalletService;
-  let prisma: PrismaService;
 
   const mockPrisma = {
     user: {
@@ -18,17 +17,21 @@ describe('WalletService', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
-    $transaction: jest.fn((cb: any) =>
+    $transaction: jest.fn((cb: (client: unknown) => unknown) =>
       cb({
         user: {
-          findUnique: (...args: any[]) => mockPrisma.user.findUnique(...args),
-          update: (...args: any[]) => mockPrisma.user.update(...args),
+          findUnique: (...args: unknown[]): unknown =>
+            mockPrisma.user.findUnique(...args),
+          update: (...args: unknown[]): unknown =>
+            mockPrisma.user.update(...args),
         },
         transaction: {
-          create: (...args: any[]) => mockPrisma.transaction.create(...args),
-          findUnique: (...args: any[]) =>
+          create: (...args: unknown[]): unknown =>
+            mockPrisma.transaction.create(...args),
+          findUnique: (...args: unknown[]): unknown =>
             mockPrisma.transaction.findUnique(...args),
-          update: (...args: any[]) => mockPrisma.transaction.update(...args),
+          update: (...args: unknown[]): unknown =>
+            mockPrisma.transaction.update(...args),
         },
       }),
     ),
@@ -46,7 +49,6 @@ describe('WalletService', () => {
     }).compile();
 
     service = module.get<WalletService>(WalletService);
-    prisma = module.get<PrismaService>(PrismaService);
     jest.clearAllMocks();
   });
 
