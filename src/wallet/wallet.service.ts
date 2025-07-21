@@ -12,6 +12,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { Decimal } from '@prisma/client/runtime/library';
+import { WalletErrors } from './wallet.errors';
 
 @Injectable()
 export class WalletService {
@@ -27,14 +28,15 @@ export class WalletService {
 
       if (!user) {
         this.logger.warn(`Usuário ${userId} não encontrado para depósito.`);
-        throw new BadRequestException('Usuário não encontrado');
+        throw new BadRequestException(WalletErrors.USER_NOT_FOUND);
       }
 
       if (new Decimal(user.balance).lt(0)) {
         this.logger.warn(
           `Depósito bloqueado para usuário ${userId}: saldo negativo.`,
         );
-        throw new ForbiddenException('Depósito bloqueado: saldo negativo');
+
+        throw new ForbiddenException(WalletErrors.BLOCKED_DEPOSIT);
       }
 
       await client.user.update({
@@ -77,23 +79,25 @@ export class WalletService {
       });
 
       if (!fromUser || !toUser) {
-        this.logger.warn(`Transferência falhou: usuário(s) não encontrado(s).`);
+        this.logger.warn(WalletErrors.TRANSFER_FAILED);
 
         throw new BadRequestException('Usuário não encontrado');
       }
+
       if (new Decimal(fromUser.balance).lt(amount)) {
         this.logger.warn(
           `Transferência bloqueada: saldo insuficiente para usuário ${fromUserId}`,
         );
 
-        throw new ForbiddenException('Saldo insuficiente');
+        throw new ForbiddenException(WalletErrors.INSUFFCIENT_BALANCE);
       }
+
       if (new Decimal(fromUser.balance).lt(0)) {
         this.logger.warn(
           `Transferência bloqueada: saldo negativo para usuário ${fromUserId}`,
         );
 
-        throw new ForbiddenException('Transferência bloqueada: saldo negativo');
+        throw new ForbiddenException(WalletErrors.TRANSFER_BLOCKED);
       }
 
       await client.user.update({
@@ -142,7 +146,7 @@ export class WalletService {
           `Reversão falhou: transação ${transactionId} não encontrada.`,
         );
 
-        throw new BadRequestException('Transação não encontrada');
+        throw new BadRequestException(WalletErrors.TRANSACTION_NOT_FOUND);
       }
 
       if (transactionOriginal.status === TransactionStatus.REVERSED) {
@@ -150,7 +154,9 @@ export class WalletService {
           `Reversão já realizada para transação ${transactionId}`,
         );
 
-        throw new BadRequestException('Transação já revertida');
+        throw new BadRequestException(
+          WalletErrors.TRANSACTION_ALREADY_REVERSED,
+        );
       }
 
       if (
@@ -161,7 +167,7 @@ export class WalletService {
           `Usuário ${userId} tentou reverter transação sem permissão (${transactionId})`,
         );
 
-        throw new ForbiddenException('Sem permissão para reverter');
+        throw new ForbiddenException(WalletErrors.NO_PERMISSION_TO_REVERT);
       }
 
       if (transactionOriginal.type === TransactionType.DEPOSIT) {
