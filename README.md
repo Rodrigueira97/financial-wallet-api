@@ -64,6 +64,8 @@ JWT_SECRET="test"
 PORT="3000"
 ```
 
+- Rode o projeto com o seguinte comando:
+
 ```sh
 docker-compose up
 ```
