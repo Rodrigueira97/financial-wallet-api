@@ -56,33 +56,16 @@ Esta API RESTful foi desenvolvida para gerenciar uma carteira financeira digital
 
 ## Como rodar o projeto
 
-### Com Docker
+
+Crie o arquivo .env com as seguintes variáveis:
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/wallet?sslmode=require&channel_binding=require" 
+JWT_SECRET="test"
+PORT="3000"
+
 ```sh
-docker-compose up --build
+docker-compose up
 ```
 Acesse a documentação Swagger em: [http://localhost:3000/api](http://localhost:3000/api)
-
-### Localmente (Node.js)
-```sh
-cp .env.example .env
-npm install
-npx prisma generate
-npx prisma migrate deploy
-npm run start:dev
-```
-
----
-
-### Localmente (Node.js)
-```sh
-cp .env.example .env
-npm install
-npx prisma generate
-npx prisma migrate deploy
-npm run start:dev
-```
-
----
 
 ### Testes
 
