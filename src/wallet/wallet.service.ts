@@ -9,7 +9,7 @@ import {
   TransactionType,
   TransactionStatus,
   Transaction,
-} from '@prisma/client';
+} from '../../generated/prisma';
 import { PrismaService } from '../database/prisma.service';
 import { Decimal } from '@prisma/client/runtime/library';
 import { WalletErrors } from './wallet.errors';

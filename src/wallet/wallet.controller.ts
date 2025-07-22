@@ -9,7 +9,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import { User } from '@prisma/client';
+import { User } from '../../generated/prisma';
 
 export interface AuthenticatedRequest extends ExpressRequest {
   user: User;
