@@ -75,7 +75,7 @@ Acesse a documentação Swagger em: [http://localhost:3000/api](http://localhost
 
 - Para rodar os testes de unidade e integração:
   ```sh
-  npm install
+  npm install        # Instalar as dependências
   npm run test       # Testes unitários
   npm run test:e2e   # Testes de integração (e2e)
   ```
