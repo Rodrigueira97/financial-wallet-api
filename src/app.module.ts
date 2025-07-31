@@ -9,6 +9,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { WalletService } from './wallet/wallet.service';
 import { WalletController } from './wallet/wallet.controller';
+import { UserController } from './user/user.controller';
+import { UserService } from './user/user.service';
 
 @Module({
   imports: [
@@ -17,7 +19,12 @@ import { WalletController } from './wallet/wallet.controller';
       signOptions: { expiresIn: '15m' },
     }),
   ],
-  controllers: [AppController, AuthController, WalletController],
+  controllers: [
+    AppController,
+    AuthController,
+    WalletController,
+    UserController,
+  ],
   providers: [
     PrismaService,
     {
@@ -27,6 +34,7 @@ import { WalletController } from './wallet/wallet.controller';
     AuthService,
     JwtStrategy,
     WalletService,
+    UserService,
   ],
 })
 export class AppModule {}

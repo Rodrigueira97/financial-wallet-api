@@ -88,6 +88,8 @@ Acesse a documentação Swagger em: [http://localhost:3000/api](http://localhost
 |--------|---------------------|---------------------------------|--------------|
 | POST   | /auth/register      | Registro de usuário             | Não          |
 | POST   | /auth/login         | Login e obtenção de tokens      | Não          |
+| GET    | /user/profile       | Perfil do usuário autenticado   | Sim          |
+| GET    | /user               | Listar todos os usuários        | Sim          |
 | POST   | /wallet/deposit     | Depósito na carteira            | Sim          |
 | POST   | /wallet/transfer    | Transferência para outro usuário| Sim          |
 | POST   | /wallet/reverse     | Reversão de transação           | Sim          |
@@ -150,6 +152,44 @@ Content-Type: application/json
 
 {
   "transactionId": "uuid-da-transacao"
+}
+```
+
+### Perfil do Usuário
+```http
+GET /user/profile
+Authorization: Bearer <accessToken>
+```
+
+### Listar Todos os Usuários
+```http
+GET /user?page=1&limit=10
+Authorization: Bearer <accessToken>
+```
+
+**Parâmetros de Query:**
+- `page` (opcional): Número da página (padrão: 1)
+- `limit` (opcional): Itens por página (padrão: 10, máximo: 100)
+
+**Resposta:**
+```json
+{
+  "users": [
+    {
+      "id": "uuid",
+      "name": "João da Silva",
+      "email": "joao@email.com",
+      "createdAt": "2024-07-17T18:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 50,
+    "totalPages": 5,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
 }
 ```
 

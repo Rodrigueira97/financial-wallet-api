@@ -39,7 +39,15 @@ export class AuthService {
 
     this.logger.log(`Usuário registrado com sucesso: ${email}`);
 
-    return this.generateTokens(email);
+    const createdUser = await this.usersRepository.findByEmail(email);
+
+    const user = {
+      id: createdUser?.id ?? '',
+      name,
+      email,
+      balance: 0,
+    };
+    return this.generateTokens(user);
   }
 
   async login({ email, password }: LoginDTO) {
@@ -62,11 +70,50 @@ export class AuthService {
 
     this.logger.log(`Login realizado com sucesso: ${email}`);
 
-    return this.generateTokens(email);
+    return this.generateTokens({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      balance: Number(user.balance),
+    });
   }
 
-  private async generateTokens(email: string) {
-    const payload = { email };
+  async refreshToken(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync<{ email: string }>(
+        refreshToken,
+      );
+      const user = await this.usersRepository.findByEmail(payload.email);
+      if (!user) {
+        throw new UnauthorizedException('Usuário não encontrado');
+      }
+
+      const accessToken = await this.jwtService.signAsync(
+        { email: user.email },
+        { expiresIn: '30m' },
+      );
+      return {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          balance: Number(user.balance),
+        },
+      };
+    } catch {
+      throw new UnauthorizedException('Refresh token inválido ou expirado');
+    }
+  }
+
+  private async generateTokens(user: {
+    id: string;
+    email: string;
+    name: string;
+    balance: number;
+  }) {
+    const payload = { email: user.email };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '30m',
@@ -76,6 +123,6 @@ export class AuthService {
       expiresIn: '7d',
     });
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, user };
   }
 }

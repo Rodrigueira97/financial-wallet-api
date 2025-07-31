@@ -39,3 +39,12 @@ export class LoginDTO {
   @MaxLength(32)
   password: string;
 }
+
+export class RefreshTokenDTO {
+  @ApiProperty({
+    example: 'jwt.refresh.token',
+    description: 'Refresh token JWT válido',
+  })
+  @IsString()
+  refreshToken: string;
+}
